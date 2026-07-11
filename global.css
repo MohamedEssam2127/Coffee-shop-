@@ -55,4 +55,64 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  * {
+    font-family: Sora;
+  }
+}
+
+@layer utilities {
+
+
+  .text-header {
+    font-family: Sora;
+    font-size: 32px;
+    font-weight: 700;
+  }
+
+  .text-title {
+    font-family: Sora;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .text-regular {
+    font-family: Sora;
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .text-12-semibold {
+    font-family: Sora;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .text-14-semibold {
+    font-family: Sora;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .text-16-semibold {
+    font-family: Sora;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .padding-16 {
+    padding: 16px;
+  }
+
+  .radius-16 {
+    border-radius: 16px;
+  }
+
+  .padding-8 {
+    padding: 8px;
+  }
+
+  .radius-8 {
+    border-radius: 8px;
+  }
 }

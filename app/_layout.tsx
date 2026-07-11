@@ -1,25 +1,75 @@
 import '@/global.css';
 
-import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { Text, TextInput } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+const oldTextRender = (Text as any).render;
+if (oldTextRender) {
+  (Text as any).render = function (...args: any[]) {
+    const origin = oldTextRender.apply(this, args);
+    return {
+      ...origin,
+      props: {
+        ...origin.props,
+        style: [{ fontFamily: 'Sora' }, origin.props.style],
+      },
+    };
+  };
+}
+
+const oldTextInputRender = (TextInput as any).render;
+if (oldTextInputRender) {
+  (TextInput as any).render = function (...args: any[]) {
+    const origin = oldTextInputRender.apply(this, args);
+    return {
+      ...origin,
+      props: {
+        ...origin.props,
+        style: [{ fontFamily: 'Sora' }, origin.props.style],
+      },
+    };
+  };
+}
+
+SplashScreen.preventAutoHideAsync();
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const [loaded, error] = useFonts({
+    'Sora': require('../assets/fonts/Sora-VariableFont_wght.ttf'),
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack />
+    <SafeAreaProvider>
+      <StatusBar />
+      <Stack screenOptions={{headerShown:false}}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+
       <PortalHost />
-    </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
+

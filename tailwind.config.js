@@ -7,6 +7,9 @@ module.exports = {
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Sora', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -41,11 +44,35 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        coffee: {
+          100: '#F9F2ED',
+          200: '#E3E3E3',
+          300: '#EDD6C8',
+          400: '#C67C4E',
+          500: '#313131',
+          primary: '#C67C4E',
+          secondary: '#EDD6C8',
+          dark: '#313131',
+          light: '#E3E3E3',
+          cream: '#F9F2ED',
+        },
+        'coffee-primary': '#C67C4E',
+        'coffee-secondary': '#EDD6C8',
+        'coffee-dark': '#313131',
+        'coffee-light': '#E3E3E3',
+        'coffee-cream': '#F9F2ED',
+        'coffee-dark-primary':'#8A4C22'
+      },
+      spacing: {
+        '8px': '8px',
+        '16px': '16px',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        '8px': '8px',
+        '16px': '16px',
       },
       borderWidth: {
         hairline: hairlineWidth(),
