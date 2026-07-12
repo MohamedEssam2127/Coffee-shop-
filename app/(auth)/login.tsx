@@ -8,11 +8,10 @@ import { router } from 'expo-router';
 import { Colors } from '../../lib/colors';
 import { useState } from 'react';
 import { useForm, Controller } from "react-hook-form"
+import {IFormData} from '@/types/loginFormData';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UserSchema } from '@/schemas/userSchema';
 
-interface IFormData{
-  email:string,
-  password: string
-}
 
 export default function Login() {
   
@@ -27,9 +26,12 @@ export default function Login() {
   const {
     handleSubmit,
     control,
-    formState
+    formState: {errors},
+    setError
   }
-   = useForm<IFormData>();
+   = useForm<IFormData>({
+    resolver: zodResolver(UserSchema)
+   });
 
   
 
@@ -67,6 +69,7 @@ export default function Login() {
                 autoCapitalize="none"
                 onChangeText={onChange}
                 value={value}
+                error={errors.email?.message}
                 leftIcon={<Mail size={20} color={Colors.muted} />}
                 />
                 )
@@ -87,6 +90,7 @@ export default function Login() {
                 isPassword
                 autoCapitalize="none"
                 onChangeText={onChange}
+                error={errors.password?.message}
                 value={value}
                 leftIcon={<Lock size={20} color={Colors.muted} />}
               />
