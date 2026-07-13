@@ -149,7 +149,7 @@ export default function Register() {
           </View>
 
           <View className="mt-8 w-full max-w-[342px] gap-4 self-center">
-            <Button onPress={handleSubmit(onSubmitHandler)} className="w-full">
+            <Button dark onPress={handleSubmit(onSubmitHandler)} className="w-full">
               Register
             </Button>
 
