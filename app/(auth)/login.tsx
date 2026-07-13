@@ -20,6 +20,7 @@ import { UserSchema } from '@/schemas/userSchema';
 export default function Login() {
   const onSubmitHandler = (data: IFormData) => {
     console.log(`email: ${data.email}, password: ${data.password}`);
+    router.replace('/(tabs)/profile');
   };
 
   const onPressRegister = () => {
