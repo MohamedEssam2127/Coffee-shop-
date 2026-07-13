@@ -9,6 +9,7 @@ interface ButtonProps {
   className?: string;
   textClassName?: string;
   disabled?: boolean;
+  dark?: boolean;
 }
 
 export default function Button({
@@ -19,14 +20,16 @@ export default function Button({
   className = '',
   textClassName = '',
   disabled = false,
+  dark = false
 }: ButtonProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       className={`
-        bg-coffee-primary items-center justify-center
+         items-center justify-center
         hover:opacity-90 active:opacity-80 active:scale-[0.98]
+        ${dark ? 'bg-coffee-dark-primary' : 'bg-coffee-primary'}
         ${disabled ? 'opacity-50' : ''}
         ${fullWidth ? 'w-full' : 'self-auto'}
         ${iconOnly ? 'w-10 h-10 radius-8' : 'px-14 py-4 radius-16'}
