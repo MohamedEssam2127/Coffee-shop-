@@ -16,7 +16,6 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
       set({ loadingCategories: true });
 
       const response = await api.get('/categories');
-      console.log(response.data.data);
       set({
         categories: response.data.data,
         loadingCategories: false,
