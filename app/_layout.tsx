@@ -7,37 +7,45 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import React, { useEffect, forwardRef } from 'react';
 import { Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-const oldTextRender = (Text as any).render;
-if (oldTextRender) {
-  (Text as any).render = function (...args: any[]) {
-    const origin = oldTextRender.apply(this, args);
-    return {
-      ...origin,
-      props: {
-        ...origin.props,
-        style: [{ fontFamily: 'Sora' }, origin.props.style],
-      },
-    };
-  };
-}
+const ReactNative = require('react-native');
+const OriginalText = ReactNative.Text;
+const OriginalTextInput = ReactNative.TextInput;
 
-const oldTextInputRender = (TextInput as any).render;
-if (oldTextInputRender) {
-  (TextInput as any).render = function (...args: any[]) {
-    const origin = oldTextInputRender.apply(this, args);
-    return {
-      ...origin,
-      props: {
-        ...origin.props,
-        style: [{ fontFamily: 'Sora' }, origin.props.style],
-      },
-    };
-  };
-}
+const CustomText = forwardRef((props: any, ref: any) => {
+  return React.createElement(OriginalText, {
+    ...props,
+    style: [{ fontFamily: 'Sora' }, props.style],
+    ref,
+  });
+});
+Object.setPrototypeOf(CustomText, OriginalText);
+
+const CustomTextInput = forwardRef((props: any, ref: any) => {
+  return React.createElement(OriginalTextInput, {
+    ...props,
+    style: [{ fontFamily: 'Sora' }, props.style],
+    ref,
+  });
+});
+Object.setPrototypeOf(CustomTextInput, OriginalTextInput);
+
+Object.defineProperty(ReactNative, 'Text', {
+  configurable: true,
+  get() {
+    return CustomText;
+  },
+});
+
+Object.defineProperty(ReactNative, 'TextInput', {
+  configurable: true,
+  get() {
+    return CustomTextInput;
+  },
+});
 
 SplashScreen.preventAutoHideAsync();
 

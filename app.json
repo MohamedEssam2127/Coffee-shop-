@@ -5,6 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
+    "splash": {
+      "image": "./assets/images/splash-new.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#C67C4E"
+    },
     "scheme": "Coffee shop",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
@@ -16,7 +21,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#131313"
       },
       "package": "com.mohamedessameldin.Coffeeshop"
     },
