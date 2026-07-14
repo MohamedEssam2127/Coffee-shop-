@@ -10,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, forwardRef } from 'react';
 import { Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAuthStore } from '@/store/auth.store';
 
 const ReactNative = require('react-native');
 const OriginalText = ReactNative.Text;
@@ -56,6 +57,15 @@ export default function RootLayout() {
     Sora: require('../assets/fonts/Sora-VariableFont_wght.ttf'),
   });
 
+  const restoreSession = useAuthStore((state: { restoreSession: any; }) => state.restoreSession);
+  const isLoading = useAuthStore((state: { isLoading: any; }) => state.isLoading);
+
+
+    useEffect(() => {
+    restoreSession().finally(() => {
+      SplashScreen.hideAsync();
+    });
+  }, []);
   useEffect(() => {
     if (loaded || error) {
       SplashScreen.hideAsync();
