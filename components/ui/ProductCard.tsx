@@ -29,7 +29,7 @@ export default function ProductCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white rounded-[16px] p-2.5 mb-4 w-[47%] shadow-sm shadow-black/5 active:opacity-95"
+      className="bg-white rounded-[16px] p-2.5 mb-4 w-[47%] shadow-sm shadow-black/5 active:opacity-85"
     >
 
       <View className="relative w-full h-[120px] rounded-[16px] overflow-hidden mb-3">

@@ -3,7 +3,7 @@ import { View, Text, ImageBackground } from 'react-native';
 
 export default function PromoCard() {
   return (
-    <View className="w-full h-[140px] rounded-[16px] overflow-hidden">
+    <View className="w-full h-[160px] rounded-[16px] overflow-hidden">
       <ImageBackground
         source={require('../../assets/images/Banner 1.png')}
         className="w-full h-full p-4 justify-between"
@@ -14,12 +14,12 @@ export default function PromoCard() {
         </View>
         <View className="mt-2 items-start">
           <View className="bg-[#121212]/80 px-2 py-0.5 rounded-[4px] mb-1">
-            <Text className="text-[32px] font-bold text-white -translate-y-2  ">
+            <Text className="text-[32px] font-bold text-white">
               Buy one get
             </Text>
           </View>
           <View className="bg-[#121212]/80 px-2 py-0.5 rounded-[4px]">
-            <Text className="text-[32px] font-bold text-white -translate-y-2">
+            <Text className="text-[32px] font-bold text-white">
               one FREE
             </Text>
           </View>

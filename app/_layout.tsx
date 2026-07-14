@@ -57,29 +57,27 @@ export default function RootLayout() {
     Sora: require('../assets/fonts/Sora-VariableFont_wght.ttf'),
   });
 
-  const restoreSession = useAuthStore((state: { restoreSession: any; }) => state.restoreSession);
-  const isLoading = useAuthStore((state: { isLoading: any; }) => state.isLoading);
+  const restoreSession = useAuthStore((state: any) => state.restoreSession);
+  const isLoading = useAuthStore((state: any) => state.isLoading);
 
-
-    useEffect(() => {
-    restoreSession().finally(() => {
-      SplashScreen.hideAsync();
-    });
-  }, []);
   useEffect(() => {
-    if (loaded || error) {
+    restoreSession();
+  }, []);
+
+  useEffect(() => {
+    if (loaded && !isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, error]);
+  }, [loaded, isLoading]);
 
-  if (!loaded && !error) {
+  if ((!loaded && !error) || isLoading) {
     return null;
   }
 
   return (
     <SafeAreaProvider>
       <StatusBar />
-      <Stack screenOptions={{headerShown:false}}>
+      <Stack screenOptions={{ headerShown: false }} initialRouteName="(auth)">
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen

@@ -110,7 +110,7 @@ export default function Home() {
             </>
           }
           renderItem={({ item }) => {
-            const matchedCartItems = cart?.items.filter((ci) => ci.product._id === item._id) || [];
+            const matchedCartItems = cart?.items?.filter((ci) => ci?.product?._id === item._id) || [];
             const cartQuantity = matchedCartItems.reduce((sum, ci) => sum + ci.quantity, 0);
 
             const handleIncrement = () => {
