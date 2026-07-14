@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { View, Text, ImageBackground } from 'react-native';
 
 export default function PromoCard() {
@@ -14,12 +14,12 @@ export default function PromoCard() {
         </View>
         <View className="mt-2 items-start">
           <View className="bg-[#121212]/80 px-2 py-0.5 rounded-[4px] mb-1">
-            <Text className="text-[32px] font-bold text-white leading-none">
+            <Text className="text-[32px] font-bold text-white -translate-y-2  ">
               Buy one get
             </Text>
           </View>
           <View className="bg-[#121212]/80 px-2 py-0.5 rounded-[4px]">
-            <Text className="text-[32px] font-bold text-white leading-none">
+            <Text className="text-[32px] font-bold text-white -translate-y-2">
               one FREE
             </Text>
           </View>

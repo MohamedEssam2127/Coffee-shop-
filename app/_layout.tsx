@@ -49,13 +49,11 @@ Object.defineProperty(ReactNative, 'TextInput', {
 
 SplashScreen.preventAutoHideAsync();
 
-export {
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    'Sora': require('../assets/fonts/Sora-VariableFont_wght.ttf'),
+    Sora: require('../assets/fonts/Sora-VariableFont_wght.ttf'),
   });
 
   useEffect(() => {
@@ -74,10 +72,17 @@ export default function RootLayout() {
       <Stack screenOptions={{headerShown:false}}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="details"
+          options={{
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerTitleStyle: { fontFamily: 'Sora', fontSize: 20, fontWeight: '700' },
+          }}
+        />
       </Stack>
 
       <PortalHost />
     </SafeAreaProvider>
   );
 }
-

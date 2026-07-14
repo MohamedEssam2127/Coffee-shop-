@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { View, TextInput, type TextInputProps } from 'react-native';
 import { CustomSearchIcon } from '../icons';
 
