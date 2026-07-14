@@ -30,11 +30,17 @@ export default function Login() {
   const {
     handleSubmit,
     control,
-    formState: { errors },
-    setError,
-  } = useForm<IFormData>({
-    resolver: zodResolver(UserSchema),
-  });
+    formState: {errors},
+    setError
+  }
+   = useForm<IFormData>({
+    resolver: zodResolver(UserSchema)
+   }); 
+
+
+   
+
+  
 
   return (
     <SafeAreaView className="flex-1 bg-coffee-cream">
