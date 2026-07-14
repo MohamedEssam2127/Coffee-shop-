@@ -1,46 +1,103 @@
-import { View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { 
-  CustomHomeIcon,
-  CustomBagIcon,
-  CustomProfileIcon,
-  CustomSearchIcon, 
-  CustomMilkIcon, 
-  CustomDeliveryIcon, 
-  CustomCoffeeIcon 
-} from '../../components/icons';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, Pressable, FlatList } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronDown, SlidersHorizontal } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
+import Search from '@/components/ui/Search';
+import PromoCard from '@/components/ui/PromoCard';
+import CategoryChip from '@/components/ui/CategoryChip';
+import ProductCard from '@/components/ui/ProductCard';
+import { useProductStore } from '@/store/product.store';
+import { useCategoryStore } from '@/store/category.store';
 
 export default function Home() {
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All Coffee');
+  const insets = useSafeAreaInsets();
+  const { fetchProducts, products, loading } = useProductStore();
+  const { fetchCategories, categories } = useCategoryStore();
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const activeCategoryObj = categories.find((c) => c.name === activeCategory);
+    const categoryId = activeCategory === 'All Coffee' ? undefined : activeCategoryObj?._id;
+
+    fetchProducts({
+      category: categoryId,
+    });
+  }, [activeCategory, categories]);
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const categoryNames = ['All Coffee', ...categories.map((c) => c.name)];
   return (
-    <SafeAreaView className="flex-1 bg-[#F9F2ED]">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 8, gap: 24 }}>
-      <Text className="text-16-semibold text-coffee-dark">Custom Coffee Shop Icons</Text>
-      {/* Static Icons Section */}
-      <View className="w-full max-w-md bg-white p-4 rounded-16px shadow-sm gap-3">
-        <Text className="text-14-semibold text-coffee-dark border-b border-coffee-light pb-2">Static Icons</Text>
-        <View className="flex-row gap-4 flex-wrap justify-center items-center">
-          <View className="items-center p-3 bg-coffee-primary rounded-16px shadow-sm min-w-[100px]">
-            <Text className="text-12-semibold text-white mb-2">Search</Text>
-            <CustomSearchIcon />
-          </View>
-
-          <View className="items-center p-3 bg-coffee-cream rounded-16px shadow-sm min-w-[100px]">
-            <Text className="text-12-semibold text-coffee-dark mb-2">Milk</Text>
-            <CustomMilkIcon color="#C67C4E" />
-          </View>
-
-          <View className="items-center p-3 bg-coffee-cream rounded-16px shadow-sm min-w-[100px]">
-            <Text className="text-12-semibold text-coffee-dark mb-2">Delivery</Text>
-            <CustomDeliveryIcon color="#C67C4E" />
-          </View>
-
-          <View className="items-center p-3 bg-coffee-cream rounded-16px shadow-sm min-w-[100px]">
-            <Text className="text-12-semibold text-coffee-dark mb-2">Coffee</Text>
-            <CustomCoffeeIcon color="#C67C4E" />
-          </View>
-        </View>
-      </View>
-    </ScrollView>
-    </SafeAreaView>
+    <View className="flex-1 bg-[#F9F9F9]">
+      <StatusBar style="light" />
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={(item) => item._id}
+        numColumns={2}
+        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 24 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            <LinearGradient
+              colors={['#0A0A0A', '#131313']}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ paddingTop: insets.top + 16, paddingBottom: 130, paddingHorizontal: 16 }}>
+              <View className="mb-6">
+                <Text className="text-12-semibold mb-1.5 text-xs text-[#B7B7B7]">Location</Text>
+                <Pressable className="flex-row items-center self-start">
+                  <Text className="text-16-semibold mr-1.5 text-white">Bilzen, Tanjungbalai</Text>
+                  <ChevronDown size={14} color="white" />
+                </Pressable>
+              </View>
+              <View className="flex-row items-center justify-between">
+                <Search
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Search coffee"
+                  containerClassName="flex-1 mr-3"
+                />
+                <Pressable className="h-[52px] w-[52px] items-center justify-center rounded-[16px] bg-coffee-primary active:opacity-80">
+                  <SlidersHorizontal size={20} color="white" />
+                </Pressable>
+              </View>
+            </LinearGradient>
+            <View className="mb-6 px-6" style={{ marginTop: -85 }}>
+              <PromoCard />
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 24, gap: 8 }}
+              className="mb-6">
+              {categoryNames.map((category) => (
+                <CategoryChip
+                  key={category}
+                  category={category}
+                  isActive={activeCategory === category}
+                  onPress={() => setActiveCategory(category)}
+                />
+              ))}
+            </ScrollView>
+          </>
+        }
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            onAddPress={() => console.log('Add to cart:', item.name)}
+          />
+        )}
+      />
+    </View>
   );
 }
