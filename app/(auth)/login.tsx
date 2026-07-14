@@ -16,12 +16,27 @@ import { useForm, Controller } from 'react-hook-form';
 import { IFormData } from '@/types/loginFormData';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserSchema } from '@/schemas/userSchema';
+import { useAuthStore } from '@/store/auth.store';
 
 export default function Login() {
-  const onSubmitHandler = (data: IFormData) => {
-    console.log(`email: ${data.email}, password: ${data.password}`);
-    router.replace('/(tabs)');
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, fetchProfile } = useAuthStore();
+  const onSubmitHandler = async (data: IFormData) => {
+    setIsSubmitting(true);
+    try {
+      await login(data.email, data.password);
+      router.replace('/(tabs)');
+    } catch (error) {
+      setError('root', {
+        message: error instanceof Error ? error.message : 'Login failed. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+
   };
+
 
   const onPressRegister = () => {
     router.push('/(auth)/register');
@@ -30,17 +45,17 @@ export default function Login() {
   const {
     handleSubmit,
     control,
-    formState: {errors},
+    formState: { errors },
     setError
   }
-   = useForm<IFormData>({
-    resolver: zodResolver(UserSchema)
-   }); 
+    = useForm<IFormData>({
+      resolver: zodResolver(UserSchema)
+    });
 
 
-   
 
-  
+
+
 
   return (
     <SafeAreaView className="flex-1 bg-coffee-cream">
@@ -103,10 +118,13 @@ export default function Login() {
             </View>
 
             <View>
-              <Button dark onPress={handleSubmit(onSubmitHandler)} className="w-full">
-                Login
+              <Button dark onPress={handleSubmit(onSubmitHandler)} className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </View>
+            {errors.root && (
+              <Text className="text-red-500 text-sm mt-2">{errors.root.message}</Text>
+            )}
           </View>
 
           <View className="flex-row items-center justify-center gap-2">
