@@ -1,43 +1,71 @@
-import { View, Text, ScrollView, Image, Pressable, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, Image, Pressable, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Edit, FileText, Plus, Minus, ChevronRight, ChevronDown } from 'lucide-react-native';
+import { Edit, FileText, Plus, Minus, ChevronRight, ChevronDown, Check } from 'lucide-react-native';
 import Button from '../../components/ui/button';
 import { Colors } from '../../lib/colors';
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CustomCupIcon, CustomDiscountIcon, CustomWalletIcon } from '../../components/icons';
 import { orderService } from '../../lib/orderService';
-
-// Mock Data
-const ORDER_DATA = {
-  address: 'Jl. Kpg Sutoyo',
-  fullAddress: 'Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai.',
-  item: {
-    name: 'Caffe Mocha',
-    type: 'Deep Foam',
-    price: 4.53,
-    image: require('../../assets/images/coffee.png'),
-  },
-  deliveryFee: 2.0,
-  discountedFee: 1.0,
-  walletBalance: 5.53,
-};
+import { useCartStore } from '@/store/cart.store';
+import { useFocusEffect, router } from 'expo-router';
+import { api } from '@/lib/api';
 
 export default function OrderScreen() {
-  const [deliveryType, setDeliveryType] = useState<'deliver' | 'pickup'>('deliver');
-  const [quantity, setQuantity] = useState(1);
+  const cart = useCartStore((s) => s.cart);
+  const fetchCart = useCartStore((s) => s.fetchCart);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const removeItem = useCartStore((s) => s.removeItem);
+  const clearCart = useCartStore((s) => s.clearCart);
 
+  const [deliveryType, setDeliveryType] = useState<'deliver' | 'pickup'>('deliver');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
   const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
-  const [address, setAddress] = useState(ORDER_DATA.address);
-  const [fullAddress, setFullAddress] = useState(ORDER_DATA.fullAddress);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+
+  const [address, setAddress] = useState('Home');
+  const [fullAddress, setFullAddress] = useState('Fetching address...');
   const [note, setNote] = useState('');
   const [orderError, setOrderError] = useState<string | null>(null);
-  const [addressDraft, setAddressDraft] = useState(ORDER_DATA.address);
-  const [fullAddressDraft, setFullAddressDraft] = useState(ORDER_DATA.fullAddress);
+
+  const [addressDraft, setAddressDraft] = useState('');
+  const [fullAddressDraft, setFullAddressDraft] = useState('');
   const [noteDraft, setNoteDraft] = useState('');
-  const totalPrice = ORDER_DATA.item.price * quantity + ORDER_DATA.discountedFee;
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
+  const [initialLoaded, setInitialLoaded] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCart().finally(() => {
+        setInitialLoaded(true);
+      });
+    }, [])
+  );
+
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        const response = await api.get('/users/me/addresses');
+        const data = response.data.data || response.data;
+        if (Array.isArray(data) && data.length > 0) {
+          const defaultAddr = data.find((addr: any) => addr.isDefault) || data[0];
+          setAddress(defaultAddr.label || 'Home');
+          setFullAddress(`${defaultAddr.street}, ${defaultAddr.city}`);
+        } else {
+          setAddress('Home');
+          setFullAddress('No address saved. Tap edit to add.');
+        }
+      } catch (err) {
+        console.log('Error fetching address:', err);
+        setAddress('Home');
+        setFullAddress('Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai.');
+      }
+    };
+    fetchAddress();
+  }, []);
 
   const openAddressModal = () => {
     setAddressDraft(address);
@@ -56,12 +84,14 @@ export default function OrderScreen() {
       setOrderError(null);
 
       await orderService.placeOrder({
-        deliveryAddress: fullAddress,
+        deliveryAddress: deliveryType === 'deliver' ? fullAddress : 'Main Coffee Shop (Pick Up)',
         discountApplied: 0,
       });
 
+      await clearCart();
+
       setIsModalVisible(false);
-      console.log('Order Confirmed & Sent to API!');
+      router.replace('/(tabs)');
     } catch (requestError) {
       setOrderError('Unable to place the order right now. Please try again.');
     } finally {
@@ -69,21 +99,47 @@ export default function OrderScreen() {
     }
   };
 
+  const cartSubtotal = cart?.totalPrice || 0;
+  const deliveryFee = deliveryType === 'deliver' ? 2.0 : 0.0;
+  const discountedFee = deliveryType === 'deliver' ? 1.0 : 0.0;
+  const totalPrice = cartSubtotal + discountedFee;
+
+  const hasItems = cart && cart.items && cart.items.length > 0;
+
+  if (!initialLoaded) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-coffee-cream">
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text className="mt-4 text-[14px] text-coffee-dark/70">Loading your order details...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasItems) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-coffee-cream px-5">
+        <View className="items-center">
+          <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-[#FAEDE5]">
+            <CustomCupIcon size={40} color={Colors.primary} />
+          </View>
+          <Text className="text-[20px] font-bold text-coffee-dark mb-2">Your Cart is Empty</Text>
+          <Text className="text-center text-[14px] text-coffee-dark/70 mb-8 max-w-[280px]">
+            Looks like you haven't added any coffee yet. Start exploring our menu to place an order!
+          </Text>
+          <Button onPress={() => router.replace('/(tabs)')} className="px-8 py-3.5">
+            Explore Menu
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-coffee-cream">
-      {/* 1. Header */}
-      {/* <View className="flex-row items-center px-5 py-4">
-        <Pressable onPress={() => router.back()} className="p-2">
-          <ChevronLeft size={24} color={Colors.primary900} />
-        </Pressable>
-        <Text className="flex-1 text-center text-[18px] font-bold text-coffee-dark mr-8">
-          Order
-        </Text>
-      </View> */}
-
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
         showsVerticalScrollIndicator={false}>
+
         <View className="mb-6 mt-4 flex-row rounded-full bg-[#F2F2F2] p-1">
           <Pressable
             onPress={() => setDeliveryType('deliver')}
@@ -103,22 +159,32 @@ export default function OrderScreen() {
           </Pressable>
         </View>
 
-        <Text className="mb-3 text-[16px] font-bold text-coffee-dark">Delivery Address</Text>
-        <Text className="mb-1 text-[14px] font-bold text-coffee-dark">{address}</Text>
-        <Text className="mb-4 text-[12px] text-muted">{fullAddress}</Text>
+        <Text className="mb-3 text-[16px] font-bold text-coffee-dark">
+          {deliveryType === 'deliver' ? 'Delivery Address' : 'Pick Up Location'}
+        </Text>
+        <Text className="mb-1 text-[14px] font-bold text-coffee-dark">
+          {deliveryType === 'deliver' ? address : 'Main Coffee Shop'}
+        </Text>
+        <Text className="mb-4 text-[12px] text-coffee-dark/70">
+          {deliveryType === 'deliver' ? fullAddress : 'Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai.'}
+        </Text>
 
         <View className="mb-6 flex-row gap-2">
-          <Pressable
-            onPress={openAddressModal}
-            className="flex-row items-center rounded-full border border-gray-600 px-4 py-1.5">
-            <Edit size={14} color={Colors.primary900} className="mr-1.5" />
-            <Text className="text-[16px] text-coffee-dark">Edit Address</Text>
-          </Pressable>
+          {deliveryType === 'deliver' && (
+            <Pressable
+              onPress={openAddressModal}
+              className="flex-row items-center rounded-full border border-gray-600 px-4 py-1.5">
+              <Edit size={14} color={Colors.primary900} className="mr-1.5" />
+              <Text className="text-[16px] text-coffee-dark">Edit Address</Text>
+            </Pressable>
+          )}
           <Pressable
             onPress={openNoteModal}
             className="flex-row items-center rounded-full border border-gray-600 px-4 py-1.5">
             <FileText size={14} color={Colors.primary900} className="mr-1.5" />
-            <Text className="text-[16px] text-coffee-dark">Add Note</Text>
+            <Text className="text-[16px] text-coffee-dark">
+              {note ? 'Edit Note' : 'Add Note'}
+            </Text>
           </Pressable>
         </View>
 
@@ -133,34 +199,56 @@ export default function OrderScreen() {
 
         <View className="mb-6 h-[1px] bg-border" />
 
-        <View className="mb-6 flex-row items-center">
-          <Image source={ORDER_DATA.item.image} className="mr-4 h-14 w-14 rounded-2xl" />
-          <View className="flex-1">
-            <Text className="text-[16px] font-bold text-coffee-dark">{ORDER_DATA.item.name}</Text>
-            <Text className="text-[12px] text-muted">{ORDER_DATA.item.type}</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
-            <Pressable
-              onPress={() => setQuantity(Math.max(1, quantity - 1))}
-              className="h-7 w-7 items-center justify-center rounded-full border border-border">
-              <Minus size={16} color={Colors.primary900} />
-            </Pressable>
-            <Text className="text-[14px] font-bold text-coffee-dark">{quantity}</Text>
-            <Pressable
-              onPress={() => setQuantity(quantity + 1)}
-              className="h-7 w-7 items-center justify-center rounded-full border border-border bg-white shadow-sm">
-              <Plus size={16} color={Colors.primary900} />
-            </Pressable>
-          </View>
-        </View>
+        {cart?.items?.map((item) => {
+          const imageSource = item.product.image && !imageErrors[item._id]
+            ? { uri: item.product.image }
+            : require('../../assets/images/notFoundImg.png');
+
+          return (
+            <View key={item._id} className="mb-6 flex-row items-center">
+              <Image
+                source={imageSource}
+                className="mr-4 h-14 w-14 rounded-2xl bg-coffee-100"
+                onError={() => setImageErrors(prev => ({ ...prev, [item._id]: true }))}
+              />
+              <View className="flex-1">
+                <Text className="text-[16px] font-bold text-coffee-dark" numberOfLines={1}>
+                  {item.product.name}
+                </Text>
+                <Text className="text-[12px] text-coffee-dark/70">Size: {item.size}</Text>
+              </View>
+              <View className="flex-row items-center gap-3">
+                <Pressable
+                  onPress={() => {
+                    if (item.quantity > 1) {
+                      updateQuantity(item._id, item.quantity - 1);
+                    } else {
+                      removeItem(item._id);
+                    }
+                  }}
+                  className="h-7 w-7 items-center justify-center rounded-full border border-border">
+                  <Minus size={16} color={Colors.primary900} />
+                </Pressable>
+                <Text className="text-[14px] font-bold text-coffee-dark">{item.quantity}</Text>
+                <Pressable
+                  onPress={() => {
+                    updateQuantity(item._id, item.quantity + 1);
+                  }}
+                  className="h-7 w-7 items-center justify-center rounded-full border border-border bg-white shadow-sm">
+                  <Plus size={16} color={Colors.primary900} />
+                </Pressable>
+
+              </View>
+            </View>
+          );
+        })}
 
         <View className="-mx-5 mb-6 h-[4px] bg-[#F4F4F4]" />
 
         <Pressable className="mb-6 flex-row items-center rounded-2xl border border-border bg-white p-4 shadow-sm">
-          {/* Lw CustomDiscountIcon msh sha8al, 7oty ay Lucide icon mkano mo2aqatan */}
           <CustomDiscountIcon size={24} color={Colors.primary} />
           <Text className="ml-3 flex-1 text-[14px] font-semibold text-coffee-dark">
-            1 Discount is Applies
+            1 Discount is Applied
           </Text>
           <ChevronRight size={20} color={Colors.primary900} />
         </Pressable>
@@ -169,19 +257,23 @@ export default function OrderScreen() {
         <View className="mb-2 flex-row justify-between">
           <Text className="text-[14px] text-coffee-dark">Price</Text>
           <Text className="text-[14px] font-bold text-coffee-dark">
-            ${(ORDER_DATA.item.price * quantity).toFixed(2)}
+            ${cartSubtotal.toFixed(2)}
           </Text>
         </View>
         <View className="mb-8 flex-row justify-between">
           <Text className="text-[14px] text-coffee-dark">Delivery Fee</Text>
-          <View className="flex-row items-center gap-2">
-            <Text className="text-[14px] text-coffee-dark line-through">
-              ${ORDER_DATA.deliveryFee.toFixed(1)}
-            </Text>
-            <Text className="text-[14px] font-bold text-coffee-dark">
-              ${ORDER_DATA.discountedFee.toFixed(1)}
-            </Text>
-          </View>
+          {deliveryType === 'deliver' ? (
+            <View className="flex-row items-center gap-2">
+              <Text className="text-[14px] text-coffee-dark line-through">
+                ${deliveryFee.toFixed(2)}
+              </Text>
+              <Text className="text-[14px] font-bold text-coffee-dark">
+                ${discountedFee.toFixed(2)}
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-[14px] font-bold text-coffee-dark">Free</Text>
+          )}
         </View>
       </ScrollView>
 
@@ -192,7 +284,7 @@ export default function OrderScreen() {
             <View className="ml-3">
               <Text className="text-[14px] font-bold text-coffee-dark">Cash/Wallet</Text>
               <Text className="text-[12px] font-bold text-coffee-primary">
-                ${ORDER_DATA.walletBalance.toFixed(2)}
+                $5.53
               </Text>
             </View>
           </View>
@@ -202,6 +294,7 @@ export default function OrderScreen() {
           Order
         </Button>
       </View>
+
       <Modal
         animationType="fade"
         transparent
@@ -210,7 +303,7 @@ export default function OrderScreen() {
         <View className="flex-1 justify-center bg-black/50 px-5">
           <View className="rounded-[28px] bg-white p-5 shadow-lg">
             <Text className="text-[20px] font-bold text-coffee-dark">Edit Address</Text>
-            <Text className="mt-1 text-[13px] text-muted">
+            <Text className="mt-1 text-[13px] text-coffee-dark/70">
               Update the delivery details for this order.
             </Text>
 
@@ -223,7 +316,7 @@ export default function OrderScreen() {
                   value={addressDraft}
                   onChangeText={setAddressDraft}
                   placeholder="e.g. Jl. Kpg Sutoyo"
-                  placeholderTextColor={Colors.muted}
+                  placeholderTextColor="#6F6F6F"
                   className="rounded-2xl border border-border bg-[#FAFAFA] px-4 py-4 text-[14px] text-coffee-dark"
                 />
               </View>
@@ -236,7 +329,7 @@ export default function OrderScreen() {
                   value={fullAddressDraft}
                   onChangeText={setFullAddressDraft}
                   placeholder="Enter the full delivery address"
-                  placeholderTextColor={Colors.muted}
+                  placeholderTextColor="#6F6F6F"
                   multiline
                   className="min-h-[110px] rounded-2xl border border-border bg-[#FAFAFA] px-4 py-4 text-[14px] text-coffee-dark"
                   style={{ textAlignVertical: 'top' }}
@@ -272,7 +365,7 @@ export default function OrderScreen() {
         <View className="flex-1 justify-center bg-black/50 px-5">
           <View className="rounded-[28px] bg-white p-5 shadow-lg">
             <Text className="text-[20px] font-bold text-coffee-dark">Add Note</Text>
-            <Text className="mt-1 text-[13px] text-muted">
+            <Text className="mt-1 text-[13px] text-coffee-dark/70">
               Leave a short note for the courier or store.
             </Text>
 
@@ -282,7 +375,7 @@ export default function OrderScreen() {
                 value={noteDraft}
                 onChangeText={setNoteDraft}
                 placeholder="Add any special instructions"
-                placeholderTextColor={Colors.muted}
+                placeholderTextColor="#6F6F6F"
                 multiline
                 className="min-h-[140px] rounded-2xl border border-border bg-[#FAFAFA] px-4 py-4 text-[14px] text-coffee-dark"
                 style={{ textAlignVertical: 'top' }}
@@ -307,6 +400,7 @@ export default function OrderScreen() {
           </View>
         </View>
       </Modal>
+
       <Modal
         animationType="fade"
         transparent={true}
@@ -319,7 +413,7 @@ export default function OrderScreen() {
             </View>
 
             <Text className="mb-2 text-[20px] font-bold text-coffee-dark">Confirm Order</Text>
-            <Text className="mb-6 text-center text-[14px] text-muted">
+            <Text className="mb-6 text-center text-[14px] text-coffee-dark/70">
               Are you sure you want to place this order for ${totalPrice.toFixed(2)}?
             </Text>
 
@@ -348,3 +442,4 @@ export default function OrderScreen() {
     </SafeAreaView>
   );
 }
+
