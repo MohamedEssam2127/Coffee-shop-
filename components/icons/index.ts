@@ -1,4 +1,3 @@
-
 import { CustomHomeIcon } from './CustomHomeIcon';
 import { CustomBagIcon } from './CustomBagIcon';
 import { CustomProfileIcon } from './CustomProfileIcon';
@@ -9,6 +8,7 @@ import { CustomCoffeeIcon } from './CustomCoffeeIcon';
 import { CustomWalletIcon } from './CustomWalletIcon';
 import { CustomDiscountIcon, CustomDisconnectIcon } from './CustomDiscountIcon';
 import { CustomCupIcon } from './CustomCupIcon';
+import { CustomHistoryIcon } from './CustomHistoryIcon';
 
 export {
   CustomHomeIcon,
@@ -22,4 +22,5 @@ export {
   CustomDiscountIcon,
   CustomDisconnectIcon,
   CustomCupIcon,
+  CustomHistoryIcon,
 };

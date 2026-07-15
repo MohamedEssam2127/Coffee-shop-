@@ -1,14 +1,31 @@
-import { View, Text, ScrollView, Image, Pressable, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Edit, FileText, Plus, Minus, ChevronRight, ChevronDown, Check } from 'lucide-react-native';
+import { ChevronDown } from 'lucide-react-native';
 import Button from '../../components/ui/button';
 import { Colors } from '../../lib/colors';
 import { useState, useCallback, useEffect } from 'react';
-import { CustomCupIcon, CustomDiscountIcon, CustomWalletIcon } from '../../components/icons';
+import { CustomCupIcon, CustomWalletIcon } from '../../components/icons';
 import { orderService } from '../../lib/orderService';
 import { useCartStore } from '@/store/cart.store';
+import { useOrderHistoryStore } from '@/store/orderHistory.store';
 import { useFocusEffect, router } from 'expo-router';
 import { api } from '@/lib/api';
+import * as Notifications from 'expo-notifications';
+
+import { DeliveryTypeSelector } from '../../components/ui/DeliveryTypeSelector';
+import { AddressSection } from '../../components/ui/AddressSection';
+import { OrderItemRow } from '../../components/ui/OrderItemRow';
+import { PaymentSummary } from '../../components/ui/PaymentSummary';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function OrderScreen() {
   const cart = useCartStore((s) => s.cart);
@@ -16,6 +33,9 @@ export default function OrderScreen() {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const clearCart = useCartStore((s) => s.clearCart);
+
+  const addOrder = useOrderHistoryStore((s) => s.addOrder);
+  const markOrderDone = useOrderHistoryStore((s) => s.markOrderDone);
 
   const [deliveryType, setDeliveryType] = useState<'deliver' | 'pickup'>('deliver');
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -35,6 +55,25 @@ export default function OrderScreen() {
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   const [initialLoaded, setInitialLoaded] = useState(false);
+
+  useEffect(() => {
+    async function requestPermissions() {
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== 'granted') {
+          console.log('Failed to get notification permissions');
+        }
+      } catch (err) {
+        console.warn('Error checking notification permissions:', err);
+      }
+    }
+    requestPermissions();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -88,10 +127,43 @@ export default function OrderScreen() {
         discountApplied: 0,
       });
 
+      // Save to order history
+      const orderId = Date.now().toString();
+      if (cart && cart.items.length > 0) {
+        addOrder({
+          id: orderId,
+          items: cart.items,
+          totalPrice: cart.totalPrice,
+          status: 'preparing',
+          createdAt: Date.now(),
+        });
+      }
+
       await clearCart();
 
+      // Schedule notification for 5 seconds later
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "☕ Order Ready!",
+            body: "Your delicious coffee is ready to be collected.",
+            data: { orderId },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 5,
+          },
+        });
+
+        setTimeout(() => {
+          markOrderDone(orderId);
+        }, 5000);
+      } catch (err) {
+        console.warn('Failed to schedule notification:', err);
+      }
+
       setIsModalVisible(false);
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/history');
     } catch (requestError) {
       setOrderError('Unable to place the order right now. Please try again.');
     } finally {
@@ -140,141 +212,49 @@ export default function OrderScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 180 }}
         showsVerticalScrollIndicator={false}>
 
-        <View className="mb-6 mt-4 flex-row rounded-full bg-[#F2F2F2] p-1">
-          <Pressable
-            onPress={() => setDeliveryType('deliver')}
-            className={`flex-1 items-center rounded-full py-3 ${deliveryType === 'deliver' ? 'bg-coffee-primary' : 'bg-transparent'}`}>
-            <Text
-              className={`text-[16px] font-semibold ${deliveryType === 'deliver' ? 'text-white' : 'text-coffee-dark'}`}>
-              Deliver
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setDeliveryType('pickup')}
-            className={`flex-1 items-center rounded-full py-3 ${deliveryType === 'pickup' ? 'bg-coffee-primary' : 'bg-transparent'}`}>
-            <Text
-              className={`text-[16px] font-semibold ${deliveryType === 'pickup' ? 'text-white' : 'text-coffee-dark'}`}>
-              Pick Up
-            </Text>
-          </Pressable>
-        </View>
+        <DeliveryTypeSelector
+          deliveryType={deliveryType}
+          onChange={setDeliveryType}
+        />
 
-        <Text className="mb-3 text-[16px] font-bold text-coffee-dark">
-          {deliveryType === 'deliver' ? 'Delivery Address' : 'Pick Up Location'}
-        </Text>
-        <Text className="mb-1 text-[14px] font-bold text-coffee-dark">
-          {deliveryType === 'deliver' ? address : 'Main Coffee Shop'}
-        </Text>
-        <Text className="mb-4 text-[12px] text-coffee-dark/70">
-          {deliveryType === 'deliver' ? fullAddress : 'Kpg. Sutoyo No. 620, Bilzen, Tanjungbalai.'}
-        </Text>
-
-        <View className="mb-6 flex-row gap-2">
-          {deliveryType === 'deliver' && (
-            <Pressable
-              onPress={openAddressModal}
-              className="flex-row items-center rounded-full border border-gray-600 px-4 py-1.5">
-              <Edit size={14} color={Colors.primary900} className="mr-1.5" />
-              <Text className="text-[16px] text-coffee-dark">Edit Address</Text>
-            </Pressable>
-          )}
-          <Pressable
-            onPress={openNoteModal}
-            className="flex-row items-center rounded-full border border-gray-600 px-4 py-1.5">
-            <FileText size={14} color={Colors.primary900} className="mr-1.5" />
-            <Text className="text-[16px] text-coffee-dark">
-              {note ? 'Edit Note' : 'Add Note'}
-            </Text>
-          </Pressable>
-        </View>
-
-        {note ? (
-          <View className="mb-6 rounded-2xl border border-[#E9D6C8] bg-[#FAF4EF] px-4 py-3">
-            <Text className="mb-1 text-[12px] font-semibold uppercase tracking-[1px] text-coffee-primary">
-              Note
-            </Text>
-            <Text className="text-[13px] text-coffee-dark">{note}</Text>
-          </View>
-        ) : null}
+        <AddressSection
+          deliveryType={deliveryType}
+          address={address}
+          fullAddress={fullAddress}
+          note={note}
+          onEditAddress={openAddressModal}
+          onAddNote={openNoteModal}
+        />
 
         <View className="mb-6 h-[1px] bg-border" />
 
-        {cart?.items?.map((item) => {
-          const imageSource = item.product.image && !imageErrors[item._id]
-            ? { uri: item.product.image }
-            : require('../../assets/images/notFoundImg.png');
-
-          return (
-            <View key={item._id} className="mb-6 flex-row items-center">
-              <Image
-                source={imageSource}
-                className="mr-4 h-14 w-14 rounded-2xl bg-coffee-100"
-                onError={() => setImageErrors(prev => ({ ...prev, [item._id]: true }))}
-              />
-              <View className="flex-1">
-                <Text className="text-[16px] font-bold text-coffee-dark" numberOfLines={1}>
-                  {item.product.name}
-                </Text>
-                <Text className="text-[12px] text-coffee-dark/70">Size: {item.size}</Text>
-              </View>
-              <View className="flex-row items-center gap-3">
-                <Pressable
-                  onPress={() => {
-                    if (item.quantity > 1) {
-                      updateQuantity(item._id, item.quantity - 1);
-                    } else {
-                      removeItem(item._id);
-                    }
-                  }}
-                  className="h-7 w-7 items-center justify-center rounded-full border border-border">
-                  <Minus size={16} color={Colors.primary900} />
-                </Pressable>
-                <Text className="text-[14px] font-bold text-coffee-dark">{item.quantity}</Text>
-                <Pressable
-                  onPress={() => {
-                    updateQuantity(item._id, item.quantity + 1);
-                  }}
-                  className="h-7 w-7 items-center justify-center rounded-full border border-border bg-white shadow-sm">
-                  <Plus size={16} color={Colors.primary900} />
-                </Pressable>
-
-              </View>
-            </View>
-          );
-        })}
+        {cart?.items?.map((item) => (
+          <OrderItemRow
+            key={item._id}
+            item={item}
+            imageError={!!imageErrors[item._id]}
+            onImageError={() => setImageErrors((prev) => ({ ...prev, [item._id]: true }))}
+            onDecrease={() => {
+              if (item.quantity > 1) {
+                updateQuantity(item._id, item.quantity - 1);
+              } else {
+                removeItem(item._id);
+              }
+            }}
+            onIncrease={() => {
+              updateQuantity(item._id, item.quantity + 1);
+            }}
+          />
+        ))}
 
         <View className="-mx-5 mb-6 h-[4px] bg-[#F4F4F4]" />
 
-        <Pressable className="mb-6 flex-row items-center rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <CustomDiscountIcon size={24} color={Colors.primary} />
-          <Text className="ml-3 flex-1 text-[14px] font-semibold text-coffee-dark">
-            1 Discount is Applied
-          </Text>
-          <ChevronRight size={20} color={Colors.primary900} />
-        </Pressable>
-
-        <Text className="mb-4 text-[16px] font-bold text-coffee-dark">Payment Summary</Text>
-        <View className="mb-2 flex-row justify-between">
-          <Text className="text-[14px] text-coffee-dark">Price</Text>
-          <Text className="text-[14px] font-bold text-coffee-dark">
-            ${cartSubtotal.toFixed(2)}
-          </Text>
-        </View>
-        <View className="mb-8 flex-row justify-between">
-          <Text className="text-[14px] text-coffee-dark">Delivery Fee</Text>
-          {deliveryType === 'deliver' ? (
-            <View className="flex-row items-center gap-2">
-              <Text className="text-[14px] text-coffee-dark line-through">
-                ${deliveryFee.toFixed(2)}
-              </Text>
-              <Text className="text-[14px] font-bold text-coffee-dark">
-                ${discountedFee.toFixed(2)}
-              </Text>
-            </View>
-          ) : (
-            <Text className="text-[14px] font-bold text-coffee-dark">Free</Text>
-          )}
-        </View>
+        <PaymentSummary
+          cartSubtotal={cartSubtotal}
+          deliveryType={deliveryType}
+          deliveryFee={deliveryFee}
+          discountedFee={discountedFee}
+        />
       </ScrollView>
 
       <View className="absolute bottom-0 left-0 right-0 rounded-t-3xl border-t border-slate-100 bg-white px-5 pb-8 pt-4 shadow-lg">

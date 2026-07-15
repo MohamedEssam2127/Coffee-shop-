@@ -27,18 +27,18 @@ export const useAuthStore = create<AuthState>()((set,get) => ({
     isLoading: true,
     isAuthenticated: false,
 
-     restoreSession: async () => {
+  restoreSession: async () => {
     try {
       const token = await getStoredToken();
       if (token) {
-        set({ token, isAuthenticated: true });
-        await get().fetchProfile();
+        set({ token, isAuthenticated: true, isLoading: false });
+        void get().fetchProfile();
+        return;
       }
     } catch (e) {
       console.error('Failed to restore session', e);
-    } finally {
-      set({ isLoading: false });
     }
+    set({ isLoading: false });
   },
 
   fetchProfile: async () => {
