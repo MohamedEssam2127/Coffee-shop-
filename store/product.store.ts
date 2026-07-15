@@ -40,7 +40,6 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       set({ productLoading: true });
       const response = await api.get(`/products/${id}`);
-      console.log(response.data.data);
       set({ productLoading: false, product: response.data.data });
     } catch (error) {
       console.log(error);

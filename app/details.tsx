@@ -2,7 +2,7 @@ import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View, Text, Image, ActivityIndicator, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, Heart, Star } from 'lucide-react-native';
+import { ChevronLeft, Heart, Star, Plus, Minus } from 'lucide-react-native';
 import { useProductStore } from '@/store/product.store';
 import { CustomCoffeeIcon, CustomDeliveryIcon, CustomMilkIcon } from '@/components/icons';
 import Button from '@/components/ui/button';
@@ -19,7 +19,7 @@ export default function Details() {
   const [selectedSize, setSelectedSize] = useState('M');
   const [modalVisible, setModalVisible] = useState(false);
   const { fetechProduct, productLoading, product } = useProductStore();
-  const { addToCart } = useCartStore();
+  const { cart, addToCart, updateQuantity, removeItem } = useCartStore();
 
   const availableSizes =
     product?.sizes && product.sizes.length > 0
@@ -53,6 +53,27 @@ export default function Details() {
       fetechProduct(id as string);
     }
   }, [id]);
+
+  const matchedCartItem = cart?.items?.find(
+    (ci) => ci?.product?._id === product?._id && ci?.size === selectedSize
+  );
+  const cartQuantity = matchedCartItem?.quantity || 0;
+
+  const handleIncrement = () => {
+    if (matchedCartItem) {
+      updateQuantity(matchedCartItem._id, matchedCartItem.quantity + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (matchedCartItem) {
+      if (matchedCartItem.quantity > 1) {
+        updateQuantity(matchedCartItem._id, matchedCartItem.quantity - 1);
+      } else {
+        removeItem(matchedCartItem._id);
+      }
+    }
+  };
 
   if (productLoading || !product) {
     return (
@@ -160,12 +181,32 @@ export default function Details() {
             $ {currentPrice}
           </Text>
         </View>
-        <Button
-          onPress={() => setModalVisible(true)}
-          className="flex-1 ml-10"
-        >
-          Buy Now
-        </Button>
+        {cartQuantity > 0 ? (
+          <View className="flex-row items-center gap-4 ml-10">
+            <Pressable
+              onPress={handleDecrement}
+              className="h-10 w-10 items-center justify-center rounded-full border border-[#E0E0E0] bg-white"
+            >
+              <Minus size={18} color="#2F2D2C" />
+            </Pressable>
+            <Text className="text-[18px] font-bold text-[#2F2D2C] min-w-[24px] text-center">
+              {cartQuantity}
+            </Text>
+            <Pressable
+              onPress={handleIncrement}
+              className="h-10 w-10 items-center justify-center rounded-full bg-[#C67C4E]"
+            >
+              <Plus size={18} color="white" />
+            </Pressable>
+          </View>
+        ) : (
+          <Button
+            onPress={() => setModalVisible(true)}
+            className="flex-1 ml-10"
+          >
+            Add to Cart
+          </Button>
+        )}
       </View>
 
       <AddToCartModal
@@ -180,4 +221,3 @@ export default function Details() {
     </View>
   );
 }
-
