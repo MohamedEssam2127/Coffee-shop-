@@ -4,6 +4,7 @@
     "slug": "Coffee shop",
     "version": "1.0.0",
     "orientation": "portrait",
+    "backgroundColor": "#C67C4E",
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash-new.png",
@@ -16,12 +17,14 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "backgroundColor": "#C67C4E"
     },
     "android": {
+      "backgroundColor": "#C67C4E",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#131313"
+        "backgroundColor": "#C67C4E"
       },
       "package": "com.mohamedessameldin.Coffeeshop"
     },
@@ -40,9 +43,17 @@
           "backgroundColor": "#C67C4E"
         }
       ],
+      "./plugins/withAndroidWindowBackground",
       "expo-status-bar",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#C67C4E"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
