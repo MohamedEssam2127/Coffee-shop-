@@ -4,8 +4,11 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/button';
 import { useEffect, useState } from 'react';
 import { User, Phone, Mail, Lock, Camera, LogOut, CreditCard, MapPin } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { Colors } from '../../lib/colors';
 import { userService } from '../../lib/userService';
+import * as ImagePicker from 'expo-image-picker';
+import { useAuthStore } from '@/store/auth.store';
 
 type ProfileForm = {
   fullName: string;
@@ -24,6 +27,33 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/(auth)/login');
+  };
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      setError('Media library permission is required to change your profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0]?.uri ?? null);
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -86,13 +116,15 @@ export default function ProfileScreen() {
           <View className="relative mb-4 h-24 w-24">
             <View className="h-full w-full overflow-hidden rounded-full border-2 border-white shadow-sm">
               <Image
-                source={{ uri: 'https://i.pravatar.cc/150?img=32' }}
+                source={{
+                  uri: profileImage ?? 'https://i.pravatar.cc/150?img=32',
+                }}
                 className="h-full w-full"
               />
             </View>
             <Pressable
               className="absolute bottom-0 right-0 items-center justify-center rounded-full border-2 border-white bg-coffee-primary p-1.5"
-              onPress={() => console.log('Open Image Picker')}>
+              onPress={pickImage}>
               <Camera size={14} color="white" />
             </Pressable>
           </View>
@@ -148,7 +180,7 @@ export default function ProfileScreen() {
 
           <Pressable
             className="w-full flex-row items-center justify-center rounded-[16px] border border-transparent bg-[#FAEDE5] py-4 active:opacity-80"
-            onPress={() => console.log('Logout triggered')}>
+            onPress={handleLogout}>
             <LogOut size={20} color={Colors.primary900} />
             <Text className="ml-2 text-[16px] font-semibold text-coffee-dark-primary">Log Out</Text>
           </Pressable>

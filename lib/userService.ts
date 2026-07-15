@@ -11,8 +11,9 @@ export const userService = {
   getProfile: async (): Promise<UserProfile> => {
     try {
       const response = await api.get('/users/me');
-      return response.data;
-    } catch (error) {
+      return response.data.data;
+   } catch (error: any) {
+      console.log('=== PROFILE API ERROR ===', error?.response?.data || error.message);
       throw error;
     }
   },
