@@ -5,15 +5,23 @@ import Input from '../../components/ui/Input';
 import { User, Phone, Mail, Lock, ArrowLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors } from '../../lib/colors';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RegisterSchema, IRegisterFormData } from '../../schemas/registerSchema';
+import { register } from '../../services/auth.service';
+import { useAuthStore } from '@/store/auth.store';
 
 export default function Register() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { login } = useAuthStore();
+
   const {
     handleSubmit,
     control,
     formState: { errors },
+    setError,
   } = useForm<IRegisterFormData>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
@@ -25,8 +33,26 @@ export default function Register() {
     },
   });
 
-  const onSubmitHandler = (data: IRegisterFormData) => {
-    console.log(`Registered user: ${data.fullName}, email: ${data.email}`);
+  const onSubmitHandler = async (data: IRegisterFormData) => {
+    setIsSubmitting(true);
+    try {
+      await register({
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phoneNumber,
+      });
+
+      await login(data.email, data.password);
+
+      router.replace('/(tabs)');
+    } catch (error) {
+      setError('root', {
+        message: error instanceof Error ? error.message : 'Registration failed. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onPressLogin = () => {
@@ -149,9 +175,17 @@ export default function Register() {
           </View>
 
           <View className="mt-8 w-full max-w-[342px] gap-4 self-center">
-            <Button dark onPress={handleSubmit(onSubmitHandler)} className="w-full">
-              Register
+            <Button
+              dark
+              onPress={handleSubmit(onSubmitHandler)}
+              className="w-full"
+              disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account...' : 'Register'}
             </Button>
+
+            {errors.root && (
+              <Text className="mt-2 text-center text-sm text-red-500">{errors.root.message}</Text>
+            )}
 
             <View className="mt-4 flex-row items-center justify-center gap-2">
               <Text className="text-title">Already have an account?</Text>
