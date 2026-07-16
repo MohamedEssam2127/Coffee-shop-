@@ -71,10 +71,10 @@ Coffee-shop/
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `POST` | `/auth/register` | ❌ | Create new account |
-| `POST` | `/auth/login` | ❌ | Login user |
+| `POST` | `/auth/register` | ✅ | Create new account |
+| `POST` | `/auth/login` | ✅ | Login user |
 | `GET`  | `/users/me` | ✅ | Get profile |
-| `GET`  | `/products` | ❌ | List all coffees |
+| `GET`  | `/products` | ✅ | List all coffees |
 | `POST` | `/cart` | ✅ | Add item to cart |
 | `GET`  | `/wishlist` | ✅ | View wishlist |
 
