@@ -11,7 +11,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Full-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 
-[Features](#-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [API Reference](#-api-reference) • [Contributors](#-contributors)
+[Features](#-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [API Reference](#-api-reference) • [Screenshots](#-Screenshots) • [Contributors](#-contributors)
 
 ---
 
