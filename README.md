@@ -1,73 +1,107 @@
-# Minimal Template
+<div align="center">
 
-This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
+<img src="https://img.shields.io/badge/CoffeeShop-App-6F4E37?style=for-the-badge&logo=coffee&logoColor=white" alt="Coffee Shop Banner" />
 
-It was initialized using the following command, then the `Minimal (Nativewind)` template was selected when prompted:
+# ☕ Coffee Shop — Your Daily Brew, Delivered
 
-```bash
-npx @react-native-reusables/cli@latest init
-```
+**A full-stack artisan coffee ordering platform, built with React Native (Expo) & Node.js**
 
-## Getting Started
+[![React Native](https://img.shields.io/badge/React%20Native-0.74-61DAFB?style=flat-square&logo=react&logoColor=white)](https://reactnative.dev)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Full-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
 
-To run the development server:
-
-```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-```
-
-This will start the Expo Dev Server. Open the app in:
-
-- **iOS**: press `i` to launch in the iOS simulator _(Mac only)_
-- **Android**: press `a` to launch in the Android emulator
-- **Web**: press `w` to run in a browser
-
-You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
-
-## Adding components
-
-You can add more reusable components using the CLI:
-
-```bash
-npx react-native-reusables/cli@latest add [...components]
-```
-
-> e.g. `npx react-native-reusables/cli@latest add input textarea`
-
-If you don't specify any component names, you'll be prompted to select which components to add interactively. Use the `--all` flag to install all available components at once.
-
-## Project Features
-
-- ⚛️ Built with [Expo Router](https://expo.dev/router)
-- 🎨 Styled with [Tailwind CSS](https://tailwindcss.com/) via [Nativewind](https://www.nativewind.dev/)
-- 📦 UI powered by [React Native Reusables](https://github.com/founded-labs/react-native-reusables)
-- 🚀 New Architecture enabled
-- 🔥 Edge to Edge enabled
-- 📱 Runs on iOS, Android, and Web
-
-## Learn More
-
-To dive deeper into the technologies used:
-
-- [React Native Docs](https://reactnative.dev/docs/getting-started)
-- [Expo Docs](https://docs.expo.dev/)
-- [Nativewind Docs](https://www.nativewind.dev/)
-- [React Native Reusables](https://reactnativereusables.com)
-
-## Deploy with EAS
-
-The easiest way to deploy your app is with [Expo Application Services (EAS)](https://expo.dev/eas).
-
-- [EAS Build](https://docs.expo.dev/build/introduction/)
-- [EAS Updates](https://docs.expo.dev/eas-update/introduction/)
-- [EAS Submit](https://docs.expo.dev/submit/introduction/)
+[Features](#-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [API Reference](#-api-reference) • [Contributors](#-contributors)
 
 ---
 
-If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
+</div>
+
+## 🌟 What is Coffee Shop?
+
+**Coffee Shop** is a premium mobile experience designed for coffee enthusiasts. It allows users to browse a curated selection of artisan coffees, customize their orders (size, quantity), manage a personal cart, and maintain a wishlist of their favorite blends. Built with a modern tech stack to ensure speed and reliability.
+
+---
+
+## ✨ Features
+
+### 📱 Mobile App (React Native/Expo)
+- 🔐 **Authentication** — Secure login/register flow with Token persistence (`SecureStore`)
+- 🏠 **Home Feed** — Browse products with category filtering
+- 🛒 **Cart Management** — Add, update, and remove items with real-time feedback
+- 💖 **Wishlist** — Save your favorite coffee blends for later
+- 👤 **Profile** — Manage account details, secure logout, and personal preferences
+- 🎨 **Modern UI** — Clean, responsive design using Tailwind (NativeWind)
+
+### 🖥️ Backend (Node.js / Express)
+- 🔐 **JWT Auth** — Secure endpoint protection
+- 📦 **CRUD Operations** — Full management for Products, Categories, and Users
+- 🛒 **Cart & Wishlist Logic** — Seamless state management for orders
+- 🛡️ **Validation** — Robust request handling
+
+---
+
+## 🏛️ Architecture
+
+Coffee-shop/
+├── 📱 app/                 # Expo Router (Navigation)
+│   ├── (auth)/             # Login & Register
+│   └── (tabs)/             # Main application tabs
+├── 🧩 components/          # Reusable UI components
+├── 📦 store/               # Global State (Zustand)
+├── 🛠️ lib/                 # API Clients & Interceptors
+├── ⚙️ services/            # API Service layer
+├── 📋 constants/           # App-wide constants
+└── 📄 types/               # TypeScript interfaces
+
+
+---
+
+## 🚀 Getting Started
+
+
+### 📱 Mobile App Setup
+1. Install dependencies: `npm install`
+2. Configure the `BASE_URL` in `lib/api.ts`.
+3. Run the app: `npx expo start`
+
+---
+
+## 📡 API Reference
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/auth/register` | ❌ | Create new account |
+| `POST` | `/auth/login` | ❌ | Login user |
+| `GET`  | `/users/me` | ✅ | Get profile |
+| `GET`  | `/products` | ❌ | List all coffees |
+| `POST` | `/cart` | ✅ | Add item to cart |
+| `GET`  | `/wishlist` | ✅ | View wishlist |
+
+---
+
+## 🛠️ Tech Stack
+
+| Frontend | Backend |
+|----------|---------|
+| React Native / Expo | Node.js / Express |
+| Zustand (State) | MongoDB / Mongoose |
+| Axios | JWT |
+| Expo SecureStore | Zod Validation |
+
+---
+
+## 🤝 Contributors
+
+- 👨🏻‍💻 **Mohamed Essam** [Github](https://github.com/MohamedEssam2127)
+- 👨🏻‍💻 **Abdelrahman** [Github](https://github.com/abdelrahman-334)
+- 👩🏻‍💻 **Mariam Essam** [Github](https://github.com/MariamEssam5)
+- 👨🏻‍💻 **Ziad Alaa** [Github](https://github.com/ZiadAlaa955)
+
+---
+
+<div align="center">
+
+**⭐ If this Coffee Shop app brewed something great for you, give it a star!**
+
+</div>
