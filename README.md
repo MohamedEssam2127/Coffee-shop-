@@ -90,6 +90,50 @@ Coffee-shop/
 | Expo SecureStore | Zod Validation |
 
 ---
+## 📸 Screenshots
+
+Take a quick look at the Coffee Shop experience—from authentication to browsing your favorite coffee blends.
+
+### 🔐 Authentication
+
+| Login | Register |
+|-------|----------|
+| ![Login](<img width="292" height="497" alt="login" src="https://github.com/user-attachments/assets/f297187b-abea-46df-bd9e-4cf82faf5da4" />
+) | ![Register](<img width="272" height="617" alt="register" src="https://github.com/user-attachments/assets/45c00b70-e469-420b-9d0b-37982a330a7f" />
+) |
+
+---
+
+### 🏠 Home & Ordering
+
+| Home Feed | Product Details |
+|-----------|-----------------|
+| ![Home](<img width="261" height="612" alt="Home" src="https://github.com/user-attachments/assets/77d52c07-bb4d-48d9-a9c7-32ad98c375e4" />
+) | ![Details](<img width="280" height="607" alt="details" src="https://github.com/user-attachments/assets/d34b7722-805e-44ec-9279-f3404aedbf05" />
+) |
+
+---
+
+### 👤 Profile & Cart
+
+| Profile | Cart |
+|---------|------|
+| ![Profile](<img width="277" height="607" alt="profile" src="https://github.com/user-attachments/assets/9fde4450-da92-4ec2-bbfa-26739d6e4add" />
+) | ![Cart](<img width="276" height="612" alt="cart" src="https://github.com/user-attachments/assets/9903c489-d089-43e8-b6a8-0f60247516d2" />
+) |
+
+---
+### 👤 OrderHistory & Add to cart
+
+| OrderHistory | Add to cart |
+|---------|------|
+| ![OrderHistory](<img width="275" height="610" alt="orderHistory" src="https://github.com/user-attachments/assets/c5333171-81e4-4a19-af24-69f32609b28a" />
+
+) | ![AddToCart](<img width="271" height="610" alt="orderorcart" src="https://github.com/user-attachments/assets/7afac543-ae3b-4825-95f1-c3ab38457219" />
+
+) |
+
+---
 
 ## 🤝 Contributors
 
